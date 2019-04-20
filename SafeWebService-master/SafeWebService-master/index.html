@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>eyeVicii</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script
+      type="text/javascript"
+      src="https://www.gstatic.com/charts/loader.js"
+    ></script>
+
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <script src="main.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      .space {
+        margin-top: 100px;
+      }
+      .chart {
+        background-color: lightgrey;
+        height: 500px;
+      }
+      /* Style the footer */
+      footer {
+        padding: 10px;
+        text-align: center;
+        color: white;
+      }
+      .bar {
+        height: 200px;
+        width: 40px;
+        background-color: red;
+      }
+    </style>
+    <script>
+      function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+          results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return "";
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+      }
+
+      function getDay(data, day) {
+        if (d === "Sunday") {
+          return data.sun.length;
+        } else if (d === "Monday") {
+          return data.mon.length;
+        } else if (d === "Tuesday") {
+          return data.tue.length;
+        } else if (d === "Wednesday") {
+          return data.wed.length;
+        } else if (d === "Thursday") {
+          return data.thu.length;
+        } else if (d === "Friday") {
+          return data.fri.length;
+        } else if (d === "Saturday") {
+          return data.sat.length;
+        }
+      }
+
+      $(function() {
+        if (getParameterByName("username") == null) {
+          $(".welcome").text("Cannot find the user");
+          $(".congrat").hide();
+        } else {
+          $(".welcome").text("Welcome, " + getParameterByName("username"));
+
+          $.get(
+            "https://thawing-everglades-71893.herokuapp.com/user/username/" +
+              getParameterByName("username"),
+            function(data, status) {
+              var past = [
+                ["Sleepy Time", "Common hour interval"],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0]
+              ];
+              var pie = [
+                ["Sleepy Time", "Common hour interval"],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0],
+                ["", 0]
+              ];
+              function getPastData(data, pie) {
+                for (d of data.pastData) {
+                  var time = d.time.substring(d.time.indexOf(",") + 2);
+                  var hour = parseInt(time.substring(0, time.indexOf(":")));
+                  var min = parseInt(time.substring(time.indexOf(":") + 1, 5));
+                  var min1 = time.substring(time.indexOf(":") + 1);
+                  var daylight = min1.substring(min1.indexOf(":") + 4);
+                  if (min > 0) {
+                    if (pie[hour][1] === 0) {
+                      pie[hour][0] += `${hour} ${daylight} - ${hour +
+                        1} ${daylight}`;
+                    }
+                    pie[hour][1] += 1;
+                  } else if (min == 0) {
+                    if (hour - 1 === 0) {
+                      if (pie[12][1] === 0) {
+                        pie[12][0] += `${hour} ${daylight} - ${hour +
+                          1} ${daylight}`;
+                      }
+                      pie[12][1] += 1;
+                    } else {
+                      if (pie[hour - 1][1] === 0) {
+                        pie[hour - 1][0] += `${hour -
+                          1} ${daylight} - ${hour} ${daylight}`;
+                      }
+                      pie[hour - 1][1] += 1;
+                    }
+                  }
+                }
+              }
+              function getPieData(data, pie) {
+                var days = [
+                  data.sun,
+                  data.mon,
+                  data.tue,
+                  data.wed,
+                  data.thu,
+                  data.fri,
+                  data.sat
+                ];
+                for (day of days) {
+                  for (d of day) {
+                    var time = d.time.substring(d.time.indexOf(",") + 2);
+                    var hour = parseInt(time.substring(0, time.indexOf(":")));
+                    var min = parseInt(
+                      time.substring(time.indexOf(":") + 1, 5)
+                    );
+                    var min1 = time.substring(time.indexOf(":") + 1);
+                    var daylight = min1.substring(min1.indexOf(":") + 4);
+                    if (min > 0) {
+                      if (pie[hour][1] === 0) {
+                        pie[hour][0] += `${hour} ${daylight} - ${hour +
+                          1} ${daylight}`;
+                      }
+                      pie[hour][1] += 1;
+                    } else if (min == 0) {
+                      if (hour - 1 === 0) {
+                        if (pie[12][1] === 0) {
+                          pie[12][0] += `${hour} ${daylight} - ${hour +
+                            1} ${daylight}`;
+                        }
+                        pie[12][1] += 1;
+                      } else {
+                        if (pie[hour - 1][1] === 0) {
+                          pie[hour - 1][0] += `${hour -
+                            1} ${daylight} - ${hour} ${daylight}`;
+                        }
+                        pie[hour - 1][1] += 1;
+                      }
+                    }
+                  }
+                }
+              }
+              function drawChart() {
+                getPieData(data, pie);
+                var dataArray = google.visualization.arrayToDataTable(pie);
+
+                // Optional; add a title and set the width and height of the chart
+                var options = { width: 700, height: 500 };
+
+                // Display the chart inside the <div> element with id="piechart"
+                var chart = new google.visualization.PieChart(
+                  document.getElementById("piechart")
+                );
+                chart.draw(dataArray, options);
+              }
+
+              function drawChartPast() {
+                getPastData(data, past);
+                var dataArray = google.visualization.arrayToDataTable(past);
+
+                // Optional; add a title and set the width and height of the chart
+                var options = { width: 700, height: 500 };
+
+                // Display the chart inside the <div> element with id="piechart"
+                var chart = new google.visualization.PieChart(
+                  document.getElementById("pastchart")
+                );
+                chart.draw(dataArray, options);
+              }
+
+              google.charts.load("current", { packages: ["corechart"] });
+              google.charts.setOnLoadCallback(drawChart);
+              google.charts.setOnLoadCallback(drawChartPast);
+
+              var stat = "Your Stats Over Week  ";
+              var sum =
+                data.sun.length +
+                data.mon.length +
+                data.tue.length +
+                data.wed.length +
+                data.thu.length +
+                data.fri.length +
+                data.sat.length;
+              if (sum === 0) {
+                stat += "😃";
+                $("#piechart").hide();
+              } else if (sum > 0 && sum < 4) {
+                stat += "😐";
+                $(".congrat").hide();
+              } else {
+                stat += "🚨 ⚠️ ⚠️ 🚨";
+                $(".congrat").hide();
+              }
+              $(".stat").text(stat);
+              var max = Math.max(
+                data.sun.length,
+                data.mon.length,
+                data.tue.length,
+                data.wed.length,
+                data.thu.length,
+                data.fri.length,
+                data.sat.length
+              );
+              var scale = 0;
+              if (max > 0) {
+                scale = 450 / max;
+              }
+              console.log(data);
+              var days = [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+              ];
+
+              for (d of days) {
+                $(".chart").append(
+                  $("<div></div>")
+                    .attr({
+                      "data-toggle": "tooltip",
+                      "data-placement": "right",
+                      title: `Asleep time: ${getDay(data, d)}`
+                    })
+                    .addClass("bar ml-auto mr-auto d-flex align-items-start")
+                    .css({ height: `${scale * getDay(data, d)}` })
+                    .tooltip()
+                    .append(
+                      $("<div></div>")
+                        .addClass("ml-auto mr-auto text-dark")
+                        .text(`${getDay(data, d) > 0 ? getDay(data, d) : ""}`)
+                        .css("font-size", "30px")
+                    )
+                );
+                $(".date").append(
+                  $("<div></div>")
+                    .addClass("ml-auto mr-auto")
+                    .text(d)
+                );
+              }
+            }
+          );
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="#"
+        ><img src="eyeVicii.png" width="50" alt=""
+      /></a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto"></ul>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <h1>Dashboard</h1>
+      <h5 class="welcome">Welcome,</h5>
+      <h1 class="stat space"></h1>
+
+      <div class="chart d-flex d-flex align-items-end"></div>
+      <div class="mb-5 date d-flex d-flex align-items-start"></div>
+      <div class="row">
+        <div class="col-6">
+          <h3 class="space">Past Week Sleepy Time Interval 😴</h3>
+          <div id="pastchart"></div>
+        </div>
+        <div class="col-6">
+          <h3 class="space">Current Week Sleepy Time Interval 😴</h3>
+          <div id="piechart"></div>
+        </div>
+      </div>
+
+      <div class="congrat p-4">
+        <img
+          src="https://media.giphy.com/media/d31w24psGYeekCZy/giphy.gif"
+          alt="Congrats Gif"
+        />
+      </div>
+    </div>
+  </body>
+
+  <footer class="mt-5 bg-dark pt-4 pb-4">
+    <p>@2019 Copyright</p>
+  </footer>
+</html>
